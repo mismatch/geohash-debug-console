@@ -48,7 +48,12 @@ class GeohashDebugConsole extends Plan {
 }
 
 object Server {
+  import java.net.URL
+
   def main(args: Array[String]) {
-    unfiltered.jetty.Server.http(8080).plan(new GeohashDebugConsole).run()
+    unfiltered.jetty.Server.
+      http(8080).
+      context("/console") {_.resources(new URL(getClass().getResource("/www/index.html"), "."))}.
+      plan(new GeohashDebugConsole).run()
   }
 }
