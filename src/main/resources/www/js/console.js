@@ -3,6 +3,10 @@
 	var view = {
 		map: L.map("map"),
 		marker: null,
+		bitsControl: {
+			input: $("#bitsInput"),
+			label: $("#bitsOutput")
+		},
 		debugLine: {
 			pointLabel: $("#pointLabel"),
 			hashLabel: $("#hashLabel")
@@ -20,12 +24,22 @@
 			controller.requestHashData();
 		},
 
+		onBitsChanged: function() {
+			debugParams.bits = view.bitsControl.input.val();
+			view.bitsControl.label.text(debugParams.bits);
+			controller.requestHashData();
+		},
+
 		requestHashData: function() {
 			$.getJSON("/hashes/point?" + $.param(debugParams), controller.whenHashReceived);
 		},
 
 		whenHashReceived: function(hashData) {
 			view.debugLine.hashLabel.text(hashData.geohash);
+		},
+
+		setMarker: function(point) {
+			view.marker = L.marker(point).addTo(view.map);
 		},
 
 		updateMarker: function(point) {
@@ -36,14 +50,27 @@
 			view.debugLine.pointLabel.text("(" + point.lat + ", " + point.lng + ")");
 		},
 
-		initView: function() {
-			var mapCenter = [debugParams.lat, debugParams.lng];
-			view.map.setView(mapCenter, 12);
-			view.marker = L.marker(mapCenter).addTo(view.map);
+		initMap: function(center) {
+			view.map.setView(center, 12);
 			L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 				}).addTo(view.map);
 			view.map.on('click', controller.onLocationChange);
+		},
+
+		initBitsControl: function() {
+			view.bitsControl.label.text(debugParams.bits);
+			view.bitsControl.input.val(debugParams.bits);
+			view.bitsControl.input.on('change', controller.onBitsChanged);
+		},
+
+		initView: function() {
+			var mapCenter = [debugParams.lat, debugParams.lng];
+
+			controller.initMap(mapCenter);
+			controller.setMarker(mapCenter);
+			controller.initBitsControl();
+
 			controller.onLocationChange({latlng: debugParams});
 		}
 	};

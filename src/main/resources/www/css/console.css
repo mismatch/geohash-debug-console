@@ -3,16 +3,29 @@ html, body {
 }
 
 .container {
-	height: 100%;
+	height: 99%;
 	margin: 10px;
 }
 
-.debug-line {
-	margin: 5px 0;
+.debug-line, .bits-control {
+	margin: 5px 0
 }
 
-.debug-line > #geohash {
+.debug-line {
+	width: 800px
+}
+
+.debug-line > #hashLabel {
 	font-weight: bold;
+}
+
+.bits-control {
+	float: right;
+	width: 525px
+}
+
+.bits-control > input {
+	width: 90%
 }
 
 #map {
