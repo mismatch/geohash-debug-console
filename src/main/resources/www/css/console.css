@@ -1,18 +1,22 @@
 html, body {
-	height: 100%
+	height: 100%;
+	overflow: hidden;
 }
 
 .container {
-	height: 99%;
-	margin: 10px;
+	height: 100%;
 }
 
 .debug-line, .bits-control {
-	margin: 5px 0
+	margin: 5px 0;
+	font-size: 14px;
+	font-family: Arial
 }
 
 .debug-line {
-	width: 800px
+	padding-top: 3px;
+	height: 40px;
+	width: 725px
 }
 
 .debug-line > #hashLabel {
@@ -20,14 +24,17 @@ html, body {
 }
 
 .bits-control {
-	float: right;
-	width: 525px
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	width: 540px
 }
 
 .bits-control > input {
-	width: 90%
+	margin-right: 0px;
+	width: 475px
 }
 
 #map {
-	height: 95%;
+	height: calc(100% - 45px);
 }
