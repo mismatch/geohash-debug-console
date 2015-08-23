@@ -35,7 +35,7 @@
 		},
 
 		whenHashReceived: function(hashData) {
-			view.debugLine.hashLabel.text(hashData.geohash);
+			view.debugLine.hashLabel.text(hashData.binary);
 		},
 
 		setMarker: function(point) {

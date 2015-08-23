@@ -5,13 +5,19 @@ import unfiltered.response._
 import unfiltered.directives._, Directives._
 import unfiltered.filter.Plan
 
+import org.json4s.JValue
 import org.json4s.JsonDSL._
 
 import ch.hsr.geohash.GeoHash
 
 class GeohashDebugConsole extends Plan {
 
-  def geohash(lat: Double, lng: Double, bits: Int) = GeoHash.withBitPrecision(lat, lng, bits).toBinaryString
+  def geohashAsJson(hash: GeoHash): JValue = {
+    val bbox = hash.getBoundingBox
+    ("binary" -> hash.toBinaryString) ~ ("bbox" -> 
+      ("minLat" -> bbox.getMinLat) ~ ("minLng" -> bbox.getMinLon) ~ 
+      ("maxLat" -> bbox.getMaxLat) ~ ("maxLng" -> bbox.getMaxLon))
+  }
 
   def intent = Directive.Intent {
     case GET(Path(Seg("hashes" :: geom :: Nil))) => {
@@ -40,12 +46,13 @@ class GeohashDebugConsole extends Plan {
               (latInterpreter ~> required named "lat") &
               (lngInterpreter ~> required named "lng") &
               (bitsInterpreter ~> required named "bits")
-          } yield Json(("geohash" -> geohash(lat, lng, bits)))
+          } yield Json(geohashAsJson(GeoHash.withBitPrecision(lat, lng, bits)))
         case _ => error(ResponseString(s"'$geom' is not supported")) 
       }
     }
   }
 }
+
 
 object Server {
   import java.net.URL
