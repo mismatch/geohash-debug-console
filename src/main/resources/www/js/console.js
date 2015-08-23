@@ -3,6 +3,7 @@
 	var view = {
 		map: L.map("map"),
 		marker: null,
+		hashBounds: null,
 		bitsControl: {
 			input: $("#bitsInput"),
 			label: $("#bitsOutput")
@@ -36,6 +37,18 @@
 
 		whenHashReceived: function(hashData) {
 			view.debugLine.hashLabel.text(hashData.binary);
+			controller.setHashBounds(hashData.bbox)
+		},
+
+		setHashBounds: function(bbox) {
+			var bounds = [[bbox.minLat, bbox.minLng], [bbox.maxLat, bbox.maxLng]];
+			if (null == view.hashBounds) {
+				view.hashBounds = L.rectangle(bounds, {color: "#D8C358", fillOpacity: 0.75, weight: 1});
+				view.hashBounds.addTo(view.map);
+			} else {
+				view.hashBounds.setBounds(bounds);
+			}
+			view.map.fitBounds(bounds);
 		},
 
 		setMarker: function(point) {
