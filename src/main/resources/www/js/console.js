@@ -90,4 +90,4 @@
 
 	controller.initView();
 
-})({lat:49.977, lng: 20.027, bits: 32});
+})({lat:50.0675, lng: 19.925, bits: 24});
