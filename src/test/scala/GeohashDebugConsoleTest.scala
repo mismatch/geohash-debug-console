@@ -32,5 +32,18 @@ class GeohashDebugConsoleTest extends FeatureSpec with Served with Hosted with G
       and ("""body includes "is not correct value of longitude" """)
         body should include("is not correct value of longitude")
     }
+
+    scenario("should validate number of bits") {
+      given("invalid number of bits")
+        val srvUrl = url("http://localhost:8080/hashes/point?bits=77&lat=36.333&lng=11.336")
+      when("request has been made")
+        val (status, body) = http.x(srvUrl) {
+            case (code, _, Some(body)) => (code, EntityUtils.toString(body))
+        }
+      then("status is Bad Request")
+        status should be(400)
+      and("""body includes "is out of bits range" """)
+        body should include("is out of bits range")
+    }
   }
 }
