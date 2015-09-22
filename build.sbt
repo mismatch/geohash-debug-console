@@ -10,6 +10,7 @@ libraryDependencies ++= Seq(
   "net.databinder" %% "unfiltered-filter" % "0.8.4",
   "net.databinder" %% "unfiltered-jetty" % "0.8.4",
   "net.databinder" %% "unfiltered-json4s" % "0.8.4",
+  "net.databinder" %% "unfiltered-scalatest" % "0.8.4" % "test",
   "ch.hsr" % "geohash" % "1.1.0"
 )
 
