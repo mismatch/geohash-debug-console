@@ -5,6 +5,9 @@ version := "0.1.0-SNAPSHOT"
 
 scalaVersion := "2.11.7"
 
+mainClass in Compile := Some("mismatch.geohash.console.Server")
+assemblyJarName in assembly := s"${name.value}-dist.jar"
+
 libraryDependencies ++= Seq(
   "net.databinder" %% "unfiltered-directives" % "0.8.4",
   "net.databinder" %% "unfiltered-filter" % "0.8.4",
