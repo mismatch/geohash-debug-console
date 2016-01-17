@@ -41,7 +41,7 @@
 		setHashBounds: function(bbox) {
 			var bounds = [[bbox.minLat, bbox.minLng], [bbox.maxLat, bbox.maxLng]];
 			if (null == view.hashBounds) {
-				view.hashBounds = L.rectangle(bounds, {color: "#D8C358", fillOpacity: 0.75, weight: 1});
+				view.hashBounds = L.rectangle(bounds, {color: "#EC3F0F", fillOpacity: 0.25, weight: 2});
 				view.hashBounds.addTo(view.map);
 			} else {
 				view.hashBounds.setBounds(bounds);
