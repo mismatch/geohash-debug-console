@@ -4,12 +4,18 @@
 		map: L.map("map"),
 		marker: null,
 		hashBounds: null,
+		hashBoundsCenter: null,
 		bitsControl: {
 			input: $("#bitsInput"),
 			label: $("#bitsOutput")
 		},
 		debugLine: {
 			hashLabel: $("#hashLabel")
+		},
+
+		bindEmptyPopup: function(marker) {
+			marker.popup = L.popup();
+			marker.bindPopup(marker.popup);
 		}
 	};
 
@@ -35,7 +41,8 @@
 
 		whenHashReceived: function(hashData) {
 			view.debugLine.hashLabel.text(hashData.binary);
-			controller.setHashBounds(hashData.bbox)
+			controller.setHashBounds(hashData.bbox);
+			controller.setHashBoundsCenter(hashData.bbox);
 		},
 
 		setHashBounds: function(bbox) {
@@ -47,6 +54,20 @@
 				view.hashBounds.setBounds(bounds);
 			}
 			view.map.fitBounds(bounds);
+		},
+		
+		setHashBoundsCenter: function(bbox) {
+			var center = L.latLng(0.5*(bbox.minLat + bbox.maxLat), 0.5*(bbox.minLng + bbox.maxLng));
+			if (null == view.hashBoundsCenter) {
+				view.hashBoundsCenter = L.circleMarker(center, {radius: 5, color: "#7D0F33"});
+				view.bindEmptyPopup(view.hashBoundsCenter);
+				view.hashBoundsCenter.on("mouseover", function(e) {view.hashBoundsCenter.openPopup();});
+				view.hashBoundsCenter.on("mouseout", function(e) {view.hashBoundsCenter.closePopup();});
+				view.map.addLayer(view.hashBoundsCenter);
+			} else {
+				view.hashBoundsCenter.setLatLng(center);
+			}
+			view.hashBoundsCenter.popup.setContent(controller.pointAsString(center));
 		},
 
 		setMarker: function(point) {
