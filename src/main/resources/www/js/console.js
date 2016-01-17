@@ -9,7 +9,6 @@
 			label: $("#bitsOutput")
 		},
 		debugLine: {
-			pointLabel: $("#pointLabel"),
 			hashLabel: $("#hashLabel")
 		}
 	};
@@ -21,7 +20,6 @@
 			debugParams.lng = point.lng;
 
 			controller.updateMarker(point);
-			controller.updatePointLabel(point);
 			controller.requestHashData();
 		},
 
@@ -53,14 +51,17 @@
 
 		setMarker: function(point) {
 			view.marker = L.marker(point).addTo(view.map);
+			view.marker.bindPopup(controller.pointAsString(point));
+			view.marker.on("mouseover", function(e) {view.marker.openPopup();});
+			view.marker.on("mouseout", function(e) {view.marker.closePopup();});
 		},
 
 		updateMarker: function(point) {
-			view.marker.setLatLng(point).update();
+			view.marker.setLatLng(point).setPopupContent(controller.pointAsString(point)).update();
 		},
 
-		updatePointLabel: function(point) {
-			view.debugLine.pointLabel.text("(" + point.lat + ", " + point.lng + ")");
+		pointAsString: function(point) {
+			return "(" + point.lat + ", " + point.lng + ")";
 		},
 
 		initMap: function(center) {
