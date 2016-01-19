@@ -1,10 +1,21 @@
 (function(debugParams) {
 
+	L.Map = L.Map.extend({
+		openPopup: function(popup) {
+			this._popup = popup;
+
+			return this.addLayer(popup).fire('popupopen', {
+				popup: this._popup
+			});
+		}
+	});
+
 	var view = {
 		map: L.map("map"),
 		marker: null,
 		hashBounds: null,
 		hashBoundsCenter: null,
+		hashBBoxPoints: null,
 		bitsControl: {
 			input: $("#bitsInput"),
 			label: $("#bitsOutput")
@@ -41,35 +52,60 @@
 
 		whenHashReceived: function(hashData) {
 			view.debugLine.hashLabel.text(hashData.binary);
+			controller.setBBoxPoints(hashData.bbox);
 			controller.setHashBounds(hashData.bbox);
-			controller.setHashBoundsCenter(hashData.bbox);
 		},
 
 		setHashBounds: function(bbox) {
 			var bounds = [[bbox.minLat, bbox.minLng], [bbox.maxLat, bbox.maxLng]];
 			if (null == view.hashBounds) {
 				view.hashBounds = L.rectangle(bounds, {color: "#EC3F0F", fillOpacity: 0.25, weight: 2});
+				view.hashBounds.on("mouseover", e => controller.showBBoxPointsInfo());
+				view.hashBounds.on("mouseout", e => controller.hideBBoxPointsInfo());
 				view.hashBounds.addTo(view.map);
 			} else {
 				view.hashBounds.setBounds(bounds);
 			}
 			view.map.fitBounds(bounds);
 		},
-		
-		setHashBoundsCenter: function(bbox) {
-			var center = L.latLng(0.5*(bbox.minLat + bbox.maxLat), 0.5*(bbox.minLng + bbox.maxLng));
-			if (null == view.hashBoundsCenter) {
-				view.hashBoundsCenter = L.circleMarker(center, {radius: 5, color: "#7D0F33"});
-				view.bindEmptyPopup(view.hashBoundsCenter);
-				view.hashBoundsCenter.on("mouseover", function(e) {view.hashBoundsCenter.openPopup();});
-				view.hashBoundsCenter.on("mouseout", function(e) {view.hashBoundsCenter.closePopup();});
-				view.map.addLayer(view.hashBoundsCenter);
-			} else {
-				view.hashBoundsCenter.setLatLng(center);
-			}
-			view.hashBoundsCenter.popup.setContent(controller.pointAsString(center));
+
+		showBBoxPointsInfo: function() {
+			console.log('showBBoxPointsInfo');
+			view.map.addLayer(view.hashBBoxPoints);
+			view.hashBBoxPoints.eachLayer(layer => {
+				layer.popup.setContent(controller.pointAsString(layer.getLatLng()));
+				layer.openPopup();
+			});
 		},
 
+		hideBBoxPointsInfo: function() {
+			console.log('hideBBoxPointsInfo');
+			view.hashBBoxPoints.eachLayer(layer => layer.closePopup());
+			view.map.removeLayer(view.hashBBoxPoints);
+		},
+
+		setBBoxPoints: function(bbox) {
+			var self = controller;
+			if (null == view.hashBBoxPoints) {
+				view.hashBBoxPoints = L.layerGroup([
+					self.createBBoxPoint(bbox, 
+						bbox => L.latLng(0.5*(bbox.minLat + bbox.maxLat), 0.5*(bbox.minLng + bbox.maxLng))),
+					self.createBBoxPoint(bbox, bbox => L.latLng(bbox.minLat, bbox.minLng)),
+					self.createBBoxPoint(bbox, bbox => L.latLng(bbox.minLat, bbox.maxLng)),
+					self.createBBoxPoint(bbox, bbox => L.latLng(bbox.maxLat, bbox.maxLng)),
+					self.createBBoxPoint(bbox, bbox => L.latLng(bbox.maxLat, bbox.minLng))]);
+			} else {
+				view.hashBBoxPoints.eachLayer(layer => layer.setLatLng(layer.locate(bbox)));
+			}
+		},
+
+		createBBoxPoint: function(bbox, locationFunc) {
+			var bboxPoint = L.circleMarker(locationFunc(bbox), {radius: 5, color: "#7D0F33"});
+			bboxPoint.locate = locationFunc;
+			view.bindEmptyPopup(bboxPoint);
+			return bboxPoint;
+		},
+		
 		setMarker: function(point) {
 			view.marker = L.marker(point).addTo(view.map);
 			view.marker.bindPopup(controller.pointAsString(point));
