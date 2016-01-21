@@ -58,8 +58,11 @@ object Server {
   import java.net.URL
 
   def main(args: Array[String]) {
+    val port = if (args.length > 0) args(0).toInt else 8080
+
+
     unfiltered.jetty.Server.
-      http(8080).
+      http(port).
       context("/console") {_.resources(new URL(getClass().getResource("/www/index.html"), "."))}.
       plan(new GeohashDebugConsole).run()
   }
