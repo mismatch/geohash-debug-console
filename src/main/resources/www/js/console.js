@@ -13,9 +13,9 @@
 	var view = {
 		map: L.map("map"),
 		marker: null,
-		hashBounds: null,
-		hashBoundsCenter: null,
+		hashBBox: null,
 		hashBBoxPoints: null,
+		bboxOption: $("#bboxOption"),
 		bitsControl: {
 			input: $("#bitsInput"),
 			label: $("#bitsOutput")
@@ -46,31 +46,45 @@
 			controller.requestHashData();
 		},
 
+		onBBoxOptionChange: function() {
+			debugParams.withBBox = view.bboxOption.attr("checked");
+			controller.requestHashData();
+		},
+
 		requestHashData: function() {
 			$.getJSON("/hashes/point?" + $.param(debugParams), controller.whenHashReceived);
 		},
 
 		whenHashReceived: function(hashData) {
 			view.debugLine.hashLabel.text(hashData.binary);
-			controller.setBBoxPoints(hashData.bbox);
-			controller.setHashBounds(hashData.bbox);
+			if (hashData.bbox) {
+				controller.setBBoxPoints(hashData.bbox);
+				controller.setHashBounds(hashData.bbox);
+				if (!controller.isBBoxOnMap()) {
+					view.map.addLayer(view.hashBBox);
+				}
+			} else if (controller.isBBoxOnMap()) {
+				view.map.removeLayer(view.hashBBox);
+			}
+		},
+
+		isBBoxOnMap: function() {
+			return view.map.hasLayer(view.hashBBox);
 		},
 
 		setHashBounds: function(bbox) {
 			var bounds = [[bbox.minLat, bbox.minLng], [bbox.maxLat, bbox.maxLng]];
-			if (null == view.hashBounds) {
-				view.hashBounds = L.rectangle(bounds, {color: "#EC3F0F", fillOpacity: 0.25, weight: 2});
-				view.hashBounds.on("mouseover", e => controller.showBBoxPointsInfo());
-				view.hashBounds.on("mouseout", e => controller.hideBBoxPointsInfo());
-				view.hashBounds.addTo(view.map);
+			if (null == view.hashBBox) {
+				view.hashBBox = L.rectangle(bounds, {color: "#EC3F0F", fillOpacity: 0.25, weight: 2});
+				view.hashBBox.on("mouseover", e => controller.showBBoxPointsInfo());
+				view.hashBBox.on("mouseout", e => controller.hideBBoxPointsInfo());
 			} else {
-				view.hashBounds.setBounds(bounds);
+				view.hashBBox.setBounds(bounds);
 			}
 			view.map.fitBounds(bounds);
 		},
 
 		showBBoxPointsInfo: function() {
-			console.log('showBBoxPointsInfo');
 			view.map.addLayer(view.hashBBoxPoints);
 			view.hashBBoxPoints.eachLayer(layer => {
 				layer.popup.setContent(controller.pointAsString(layer.getLatLng()));
@@ -79,7 +93,6 @@
 		},
 
 		hideBBoxPointsInfo: function() {
-			console.log('hideBBoxPointsInfo');
 			view.hashBBoxPoints.eachLayer(layer => layer.closePopup());
 			view.map.removeLayer(view.hashBBoxPoints);
 		},
@@ -135,12 +148,17 @@
 			view.bitsControl.input.on('change', controller.onBitsChanged);
 		},
 
+		initBBoxOption: function() {
+			view.bboxOption.on('change', controller.onBBoxOptionChange);
+		},
+
 		initView: function() {
 			var mapCenter = [debugParams.lat, debugParams.lng];
 
 			controller.initMap(mapCenter);
 			controller.setMarker(mapCenter);
 			controller.initBitsControl();
+			controller.initBBoxOption();
 
 			controller.onLocationChange({latlng: debugParams});
 		}

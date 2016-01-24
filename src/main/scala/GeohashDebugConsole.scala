@@ -1,5 +1,7 @@
 package mismatch.geohash.console
 
+import scala.util.control.Exception.allCatch
+
 import unfiltered.request._
 import unfiltered.response._
 import unfiltered.directives._, Directives._
@@ -12,12 +14,17 @@ import ch.hsr.geohash.GeoHash
 
 class GeohashDebugConsole extends Plan {
 
-  def geohashAsJson(hash: GeoHash): JValue = {
-    val bbox = hash.getBoundingBox
-    ("binary" -> hash.toBinaryString) ~ ("bbox" -> 
-      ("minLat" -> bbox.getMinLat) ~ ("minLng" -> bbox.getMinLon) ~ 
-      ("maxLat" -> bbox.getMaxLat) ~ ("maxLng" -> bbox.getMaxLon))
+  def geohashAsJson(hash: GeoHash, withBBox: Option[Boolean]): JValue = withBBox match {
+    case Some(true) => {
+      val bbox = hash.getBoundingBox
+      ("binary" -> hash.toBinaryString) ~ ("bbox" -> 
+        ("minLat" -> bbox.getMinLat) ~ ("minLng" -> bbox.getMinLon) ~ 
+        ("maxLat" -> bbox.getMaxLat) ~ ("maxLng" -> bbox.getMaxLon))
+    } 
+    case _ => ("binary" -> hash.toBinaryString)
   }
+
+  object asBool extends data.Fallible[String, Boolean](s => allCatch.opt {s.toBoolean})
 
   def intent = Directive.Intent {
     case GET(Path(Seg("hashes" :: geom :: Nil))) => {
@@ -42,11 +49,12 @@ class GeohashDebugConsole extends Plan {
       geom match {
         case "point" => 
           for {
-            (lat & lng & bits) <- 
+            (lat & lng & bits & withBBox) <- 
               (latInterpreter ~> required named "lat") &
               (lngInterpreter ~> required named "lng") &
-              (bitsInterpreter ~> required named "bits")
-          } yield Json(geohashAsJson(GeoHash.withBitPrecision(lat, lng, bits)))
+              (bitsInterpreter ~> required named "bits") &
+              (asBool named "withBBox")
+          } yield Json(geohashAsJson(GeoHash.withBitPrecision(lat, lng, bits), withBBox))
         case _ => error(ResponseString(s"'$geom' is not supported")) 
       }
     }
@@ -59,7 +67,6 @@ object Server {
 
   def main(args: Array[String]) {
     val port = if (args.length > 0) args(0).toInt else 8080
-
 
     unfiltered.jetty.Server.
       http(port).

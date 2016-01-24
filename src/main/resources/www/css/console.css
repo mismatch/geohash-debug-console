@@ -7,10 +7,17 @@ html, body {
 	height: 100%;
 }
 
-.debug-line, .bits-control {
+.debug-line, .bits-control, .bbox-option {
 	margin: 5px 0;
 	font-size: 14px;
 	font-family: Arial
+}
+
+.bbox-option {
+	position: absolute;
+	right: 545px;
+	bottom: 7px;
+	width: 140px;
 }
 
 .debug-line {
