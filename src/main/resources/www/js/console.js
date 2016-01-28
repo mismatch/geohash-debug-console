@@ -36,7 +36,7 @@
 			debugParams.lat = point.lat;
 			debugParams.lng = point.lng;
 
-			controller.updateMarker(point);
+			controller.setMarker(point);
 			controller.requestHashData();
 		},
 
@@ -120,14 +120,16 @@
 		},
 		
 		setMarker: function(point) {
-			view.marker = L.marker(point).addTo(view.map);
-			view.marker.bindPopup(controller.pointAsString(point));
-			view.marker.on("mouseover", function(e) {view.marker.openPopup();});
-			view.marker.on("mouseout", function(e) {view.marker.closePopup();});
-		},
-
-		updateMarker: function(point) {
-			view.marker.setLatLng(point).setPopupContent(controller.pointAsString(point)).update();
+			if (null == view.marker) {
+				view.marker = L.marker(point).addTo(view.map);
+				view.marker.bindPopup(controller.pointAsString(point));
+				view.marker.on("mouseover", function(e) {view.marker.openPopup();});
+				view.marker.on("mouseout", function(e) {view.marker.closePopup();});
+			} else {
+				view.marker.setLatLng(point)
+					.setPopupContent(controller.pointAsString(point))
+					.update();
+			}
 		},
 
 		pointAsString: function(point) {
@@ -135,7 +137,7 @@
 		},
 
 		initMap: function(center) {
-			view.map.setView(center, 12);
+			view.map.setView(center, 5);
 			L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 				}).addTo(view.map);
@@ -151,19 +153,23 @@
 		initBBoxOption: function() {
 			view.bboxOption.on('change', controller.onBBoxOptionChange);
 		},
+		
+		openHelpPopup: function(point) {
+			L.popup({maxWidth: 200}).setLatLng(point)
+				.setContent("Please, click anywhere on the map to start using console.")
+				.openOn(view.map);
+		},
 
 		initView: function() {
 			var mapCenter = [debugParams.lat, debugParams.lng];
 
 			controller.initMap(mapCenter);
-			controller.setMarker(mapCenter);
 			controller.initBitsControl();
 			controller.initBBoxOption();
-
-			controller.onLocationChange({latlng: debugParams});
+			controller.openHelpPopup(mapCenter);
 		}
 	};
 
 	controller.initView();
 
-})({lat:50.0675, lng: 19.925, bits: 24});
+})({lat:50.675, lng: 11.925, bits: 8});
