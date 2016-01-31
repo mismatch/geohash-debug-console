@@ -1,7 +1,7 @@
 name := "geohash-debug-console"
 description := "Web-based debug console to poke around geohash and related things"
 
-version := "0.1.0-SNAPSHOT"
+version := "0.1.0"
 
 scalaVersion := "2.11.7"
 
