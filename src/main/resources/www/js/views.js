@@ -117,7 +117,9 @@ var views = {
 		},
 
 		clearBBox: function() {
-			this.map.removeLayer(this.bbox);
+			if (null != this.bbox) {
+				this.map.removeLayer(this.bbox);
+			}
 		}
 	},
 
