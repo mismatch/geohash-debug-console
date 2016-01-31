@@ -5,7 +5,6 @@ var userRequest = function(zeroRequest) {
 		withBBox: false,
 
 		perform: function() {
-			console.log("this = ", this);
 			if (null == this.point) {
 				return;
 			}

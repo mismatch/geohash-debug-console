@@ -1,33 +1,31 @@
-var views = {
-	L.Map = L.Map.extend({
-		openPopup: function(popup) {
-			this._popup = popup;
+L.Map = L.Map.extend({
+	openPopup: function(popup) {
+		this._popup = popup;
 
-			return this.addLayer(popup).fire("popupopen", {
-				popup: this._popup
-			});
-		}
-	});
+		return this.addLayer(popup).fire("popupopen", {
+			popup: this._popup
+		});
+	}
+});
+
+var views = {
 
 	settingsView: {
 		bitsInput: $("#bitsInput"),
 		bitsLabel: $("#bitsOutput"),
 		bboxOption: $("#bboxOption"),
 
-		setBits: function(bits) {
+		updateBitsLabel: function(bits) {
 			this.bitsLabel.text(bits);
 		},
 		
-		setBBoxOption: function(option) {
-			this.bboxOption.attr("checked", option);
-		},
-
 		setChangeListener: function(listener) {
+			var self = this;
 			this.bitsInput.on("change", function() {
-				listener.onBitsChanged(this.bitsInput.val());
+				listener.onBitsChanged(self.bitsInput.val());
 			});
 			this.bboxOption.on("change", function() {
-				listener.onBBoxOptionChanged(this.bboxOption.attr("checked"));
+				listener.onBBoxOptionChanged(self.bboxOption.attr("checked"));
 			});
 		}
 	},
@@ -72,27 +70,14 @@ var views = {
 			L.popup({maxWidth: 200})
 				.setLatLng(point)
 				.setContent(hint)
-				.openOn(view.map);
+				.openOn(this.map);
 		},
 		
 		createBBoxPoint: function(point) {
 			return L.circleMarker(point, {radius: 5, color: "#7D0F33"});
 		},
 
-		showBBoxPointsInfo: function(bbox) {
-			// TODO: move variable to controller
-			var points = [
-				L.latLng(0.5*(bbox.minLat + bbox.maxLat), 0.5*(bbox.minLng + bbox.maxLng)),
-				L.latLng(bbox.minLat, bbox.minLng),
-				L.latLng(bbox.minLat, bbox.maxLng),	
-				L.latLng(bbox.maxLat, bbox.maxLng),
-				L.latLng(bbox.maxLat, bbox.minLng)i
-			];
-
-			for (var i = 0; i < 5; i++) {
-				this.bboxPoints.addLayer(this.createBBoxPoint(points[i]));
-			}
-			
+		showBBoxPointsInfo: function() {
 			var self = this;
 			this.map.addLayer(this.bboxPoints);
 			this.bboxPoints.eachLayer(layer => {
@@ -106,22 +91,29 @@ var views = {
 				layer.closePopup();
 				layer.unbindPopup();
 			});
-			this.bboxPoints.clearLayers();
 			this.map.removeLayer(this.bboxPoints);
 		},
 
-		drawBBox: function(bbox) {
-			var bounds = [[bbox.minLat, bbox.minLng], [bbox.maxLat, bbox.maxLng]];
+		drawBBox: function(bounds, points) {
 			if (null == this.bbox) {
 				this.bbox = L.rectangle(bounds, {color: "#EC3F0F", fillOpacity: 0.25, weight: 2});
 
 				var self = this;
-				this.bbox.on("mouseover", e => self.showBBoxPointsInfo(bbox));
+				this.bbox.on("mouseover", e => self.showBBoxPointsInfo());
 				this.bbox.on("mouseout", e => self.hideBBoxPointsInfo());
 			} else {
 				this.bbox.setBounds(bounds);
 			}
+
+			if (!this.map.hasLayer(this.bbox)) {
+				this.map.addLayer(this.bbox);
+			}
 			this.map.fitBounds(bounds);
+
+			this.bboxPoints.clearLayers();
+			for (var i = 0; i < 5; i++) {
+				this.bboxPoints.addLayer(this.createBBoxPoint(points[i]));
+			}
 		},
 
 		clearBBox: function() {

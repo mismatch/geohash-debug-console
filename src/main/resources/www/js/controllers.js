@@ -2,7 +2,7 @@ var controllers = {
 	settingsController: function(userRequest, view) {
 		return {
 			onBitsChanged: function(bits) {
-				view.setBits(bits);
+				view.updateBitsLabel(bits);
 				userRequest.bits = bits;
 				userRequest.perform();
 			},
@@ -13,8 +13,6 @@ var controllers = {
 			},
 
 			initView: function() {
-				view.setBits(userRequest.bits);
-				view.setBBoxOption(userRequest.withBBox);
 				view.setChangeListener(this);
 			}
 		};
@@ -36,7 +34,16 @@ var controllers = {
 			},
 
 			drawBBox: function(bbox) {
-				view.drawBBox(bbox); // TODO: split bbox into bounds and points
+				var points = [
+					[bbox.minLat, bbox.minLng],
+					[bbox.minLat, bbox.maxLng],	
+					[0.5*(bbox.minLat + bbox.maxLat), 0.5*(bbox.minLng + bbox.maxLng)],
+					[bbox.maxLat, bbox.minLng],
+					[bbox.maxLat, bbox.maxLng]
+				];
+				var bounds = [points[0], points[4]];
+
+				view.drawBBox(bounds, points);
 			},
 
 			clearBBox: function() {
