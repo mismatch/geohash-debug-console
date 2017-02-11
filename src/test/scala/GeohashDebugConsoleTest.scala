@@ -14,19 +14,14 @@ class GeohashDebugConsoleTest extends FeatureSpec with Served with Hosted with G
   }
 
   feature("rest service") {
-    val http = new OkHttpClient()
-
     scenario("should validate coordinates") {
       Given("invalid latitude and longitude parameters")
-        val request = new Request.Builder()
-          .url("http://localhost:8080/hashes/point?bits=7&lat=96.333&lng=211.336")
-          .build()
+        val request = req(HttpUrl.parse("http://localhost:8080/hashes/point?bits=7&lat=96.333&lng=211.336"))
       When("request has been made")
-        val response = http.newCall(request).execute()
-        val status = response.code
-        val body = response.body().string()
+        val response = httpx(request)
+        val body = response.as_string
       Then("status is Bad Request")
-        status should be(400)
+        response.code should be(400)
       And("""body includes "is not correct value of latitude" """)
         body should include("is not correct value of latitude")
       And ("""body includes "is not correct value of longitude" """)
@@ -35,15 +30,13 @@ class GeohashDebugConsoleTest extends FeatureSpec with Served with Hosted with G
 
     scenario("should validate number of bits") {
       Given("invalid number of bits")
-        val request = new Request.Builder()
-          .url("http://localhost:8080/hashes/point?bits=77&lat=36.333&lng=11.336")
-          .build()
+        val request = req(HttpUrl.parse("http://localhost:8080/hashes/point?bits=77&lat=36.333&lng=11.336"))
       When("request has been made")
-        val response = http.newCall(request).execute()        
+        val response = httpx(request)        
       Then("status is Bad Request")
         response.code should be(400)
       And("""body includes "is out of bits range" """)
-        response.body().string() should include("is out of bits range")
+        response.as_string should include("is out of bits range")
     }
   }
 }
