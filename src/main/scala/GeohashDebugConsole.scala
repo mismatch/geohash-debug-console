@@ -18,8 +18,8 @@ class GeohashDebugConsole extends Plan {
     case Some(true) => {
       val bbox = hash.getBoundingBox
       ("binary" -> hash.toBinaryString) ~ ("bbox" -> 
-        ("minLat" -> bbox.getMinLat) ~ ("minLng" -> bbox.getMinLon) ~ 
-        ("maxLat" -> bbox.getMaxLat) ~ ("maxLng" -> bbox.getMaxLon))
+        ("minLat" -> bbox.getSouthLatitude) ~ ("minLng" -> bbox.getWestLongitude) ~ 
+        ("maxLat" -> bbox.getNorthLatitude) ~ ("maxLng" -> bbox.getEastLongitude))
     } 
     case _ => ("binary" -> hash.toBinaryString)
   }
